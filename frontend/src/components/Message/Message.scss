@@ -25,20 +25,6 @@
     display: flex;
   }
 
-  #container > div > button {
-    background-color: white;
-    background-size: 10px;
-    width: 100%;
-    height: auto;
-    border: white;
-  }
-
-  #container > div > button > img {
-    width: 60px;
-    height: 60px;
-    display: inline-block;
-  }
-
   .containerText {
     align-items: start;
     width: 550px;;

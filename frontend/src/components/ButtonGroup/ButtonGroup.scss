@@ -1,0 +1,49 @@
+.ButtonGroup {
+  button {
+    border: none;
+    color: white;
+    padding: 15px;
+    background-size: 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 20px;
+    margin: 4px 5px;
+    border-radius: 45%;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .GreenButton {
+    background-color: #28AC7A;
+  }
+
+  .YellowButton {
+    background-color: #E2C32C;
+  }
+
+  .OrangeButton {
+    background-color: #F6802C;
+  }
+
+  .RedButton {
+    background-color: red;
+  }
+}
+
+.ButtonGroupImage {
+  button {
+    border: none;
+    background-color: white;
+    background-size: 10px;
+    display: inline-block;
+    width: 100%;
+    height: auto;
+  }
+
+  button > img {
+    width: 60px;
+    height: 60px;
+    display: inline-block;
+  }
+}
