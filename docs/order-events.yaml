@@ -1,0 +1,80 @@
+asyncapi: '2.5.0'
+id: 'yumyms:orderalertsystem:server'
+info:
+  title: Order Alert System API
+  version: '1.0.0'
+  description: |
+    An api for alerting customers the status of their order
+  contact:
+    name: API Support
+    email: jac475@cornell.edu
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  production:
+    url: localhost:8081
+    protocol: ws
+    description: Local development server.
+channels:
+  /orders:
+    bindings:
+      ws:
+        method: GET
+    subscribe:
+      summary: Client can receive chat messages.
+      operationId: subOrdersMessage
+      message:
+        $ref: '#/components/messages/orderMessageArray'
+#
+# All reusable parts for readability and staying DRY
+#
+components:
+  messages:
+    orderMessageArray:
+      summary: An array of customer orders
+      examples:
+        - name: Single Order
+          summary: Contains a single customer order
+          payload:
+            - orderId: 1
+              phoneNumber: "202-555-4312"
+              status: "open"
+        - name: Multiple Orders
+          summary: Contains three customer orders
+          payload:
+            - orderId: 2
+              phoneNumber: "202-555-4314"
+              status: "open"
+            - orderId: 4
+              phoneNumber: "202-555-4315"
+              status: "awaiting_pickup"
+            - orderId: 5
+              phoneNumber: "202-555-4316"
+              status: "open"
+      payload:
+        type: array
+        items:
+          type: object
+          $ref: "#/components/messages/orderMessage"
+          additionalProperties: false
+    orderMessage:
+      summary: A customer order
+      payload:
+        type: object
+        required:
+          - orderId
+          - phoneNumber
+          - status
+        additionalProperties: false
+        properties:
+          orderId:
+            description: The customer's order id.
+            type: number
+          phoneNumber:
+            description: The customer's phone number.
+            type: string
+          status:
+            description: An order can be either open, closed, or awaiting_pickup.
+            type: string
+
