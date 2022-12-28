@@ -4,18 +4,26 @@ import "./ButtonGroup.scss";
 class ButtonGroup extends Component {
     constructor(props) {
         super(props);
+
+        let lifecycle;
+        if (props.orderState == 'awaiting_pickup') {
+            lifecycle = 'ALERT_SENT';
+        } else {
+            lifecycle = 'NOT_CLICKED';
+        }
+
         this.state = {
-            lifecycle: "NOT_CLICKED"
+            lifecycle: lifecycle
         }
     }
 
     deleteButtonClicked = () => {
-        this.setState({ lifecycle: "DELETE_BUTTON_CLICKED" });
+        this.setState({ lifecycle: 'DELETE_BUTTON_CLICKED' });
         console.log(this.state);
     }
 
     confirmButtonClicked = () => {
-        this.setState({ lifecycle: "CONFIRM_BUTTON_CLICKED" });
+        this.setState({ lifecycle: 'CONFIRM_BUTTON_CLICKED' });
         console.log(this.state);
     }
 
@@ -25,7 +33,7 @@ class ButtonGroup extends Component {
                 console.log('send web request: ', msgType);
                 // todo: send network call and update via websocket
 
-                this.setState({ lifecycle: "ALERT_SENT" });
+                this.setState({ lifecycle: 'ALERT_SENT' });
 
                 break;
             }
@@ -49,12 +57,12 @@ class ButtonGroup extends Component {
     cancelButtonClicked = (state) => {
         switch (state) {
             case 'ALERT_SENT': {
-                this.setState({ lifecycle: "DELETE_BUTTON_CLICKED" });
+                this.setState({ lifecycle: 'DELETE_BUTTON_CLICKED' });
                 break;
             }
 
             case 'CONFIRM_BUTTON_CLICKED': {
-                this.setState({ lifecycle: "NOT_CLICKED" });
+                this.setState({ lifecycle: 'NOT_CLICKED' });
                 break;
             }
 
@@ -73,7 +81,7 @@ class ButtonGroup extends Component {
 
     render() {
         return (
-            (this.state.lifecycle === "CONFIRM_BUTTON_CLICKED") ? (
+            (this.state.lifecycle === 'CONFIRM_BUTTON_CLICKED') ? (
                 <div className="ButtonGroup">
                     <button className="RedButton" onClick={this.cancelButtonClicked.bind(null, 'CONFIRM_BUTTON_CLICKED')}>
                         Cancel
@@ -82,7 +90,7 @@ class ButtonGroup extends Component {
                         Send
                     </button>
                 </div>
-            ) : ((this.state.lifecycle === "DELETE_BUTTON_CLICKED") ? (
+            ) : ((this.state.lifecycle === 'DELETE_BUTTON_CLICKED') ? (
                     <div className="ButtonGroup">
                         <button className="RedButton" onClick={this.cancelButtonClicked.bind(null, 'CONFIRM_BUTTON_CLICKED')}>
                             Cancel
@@ -91,7 +99,7 @@ class ButtonGroup extends Component {
                             Delete
                         </button>
                     </div>
-                ) : ((this.state.lifecycle === "ALERT_SENT") ? (
+                ) : ((this.state.lifecycle === 'ALERT_SENT') ? (
                     <div className="ButtonGroup">
                         <button className="YellowButton" onClick={this.cancelButtonClicked.bind(null, 'delete')}>
                             Delete

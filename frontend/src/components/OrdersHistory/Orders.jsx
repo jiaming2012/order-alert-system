@@ -4,8 +4,8 @@ import Message from "../Message";
 
 class Orders extends Component {
     render() {
-        const orders = this.props.orders.map(msg =>
-            <Message message={msg.data} />
+        const orders = this.props.orders.map(order =>
+            <Message order={order} />
         );
 
         return (

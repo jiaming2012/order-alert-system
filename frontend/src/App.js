@@ -10,22 +10,14 @@ class App extends Component {
     this.state = {
         orders: []
     }
-    connect();
   }
 
   componentDidMount() {
-      connect((order) => {
-          console.log("New Message");
+      connect((orders) => {
           this.setState(prevState => ({
-              orders: [...this.state.orders, order]
+              orders
           }))
-          console.log(this.state);
       })
-  }
-
-  send() {
-    console.log("hello");
-    sendMsg("hello");
   }
 
   render() {
@@ -33,7 +25,6 @@ class App extends Component {
         <div className="App">
           <Header />
             <Orders orders={this.state.orders} />
-            <button onClick={this.send}>Hit</button>
         </div>
     );
   }

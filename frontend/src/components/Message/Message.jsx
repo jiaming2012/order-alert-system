@@ -3,13 +3,12 @@ import "./Message.scss";
 import ButtonGroup from "../ButtonGroup/ButtonGroup";
 
 class Message extends Component {
+    orderId;
+    phoneNumber;
+    status;
+
     constructor(props) {
         super(props);
-        let temp = JSON.parse(this.props.message);
-        console.log("temp: ", temp);
-        this.state = {
-            message: temp
-        };
     }
 
     render() {
@@ -17,12 +16,12 @@ class Message extends Component {
             <div className="Message">
                 <div id="container">
                     <div className="containerText">
-                        {this.state.message.body}
+                        {this.props.order.orderId}
                     </div>
                     <div className="containerText">
-                        856-875-7743
+                        {this.props.order.phoneNumber}
                     </div>
-                    <ButtonGroup />
+                    <ButtonGroup orderState={this.props.order.status} />
                 </div>
             </div>
         )

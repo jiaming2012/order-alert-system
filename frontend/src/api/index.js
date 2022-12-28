@@ -1,5 +1,5 @@
 // api/index.js
-var socket = new WebSocket("ws://localhost:8080/ws");
+var socket = new WebSocket("ws://localhost:8080/orders");
 
 let connect = cb => {
     console.log("Attempting Connection...");
@@ -8,9 +8,14 @@ let connect = cb => {
         console.log("Successfully Connected");
     };
 
-    socket.onmessage = msg => {
-        console.log(msg);
-        cb(msg);
+    socket.onmessage = wsEvent => {
+        try {
+            const orders = JSON.parse(wsEvent.data);
+            cb(orders);
+        } catch (err) {
+            console.error(`failed to parse wsEvent: ${err}`);
+            return;
+        }
     };
 
     socket.onclose = event => {
