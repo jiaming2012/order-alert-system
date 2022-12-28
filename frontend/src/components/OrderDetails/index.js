@@ -1,4 +1,4 @@
-// src/components/Message/index.js
-import Message from "./Message.jsx";
+// src/components/OrderDetails/index.js
+import OrderDetails from "./OrderDetails.jsx";
 
-export default Message;
+export default OrderDetails;

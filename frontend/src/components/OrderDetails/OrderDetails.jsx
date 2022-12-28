@@ -1,9 +1,11 @@
 import React, {Component} from "react";
-import "./Message.scss";
+import "./OrderDetails.scss";
 import ButtonGroup from "../ButtonGroup/ButtonGroup";
+import moment from "moment";
 
-class Message extends Component {
+class OrderDetails extends Component {
     orderId;
+    createdAt;
     phoneNumber;
     status;
 
@@ -12,11 +14,16 @@ class Message extends Component {
     }
 
     render() {
+        let createdAt = moment(this.props.order.createdAt).format("h:mm a");
+
         return (
             <div className="Message">
                 <div id="container">
                     <div className="containerText">
                         {this.props.order.orderId}
+                    </div>
+                    <div className="containerText">
+                        {createdAt}
                     </div>
                     <div className="containerText">
                         {this.props.order.phoneNumber}
@@ -28,4 +35,4 @@ class Message extends Component {
     }
 }
 
-export default Message;
+export default OrderDetails;

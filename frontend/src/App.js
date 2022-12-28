@@ -2,7 +2,7 @@ import './App.css';
 import { connect, sendMsg } from "./api";
 import Header from "./components/Header/Header";
 import {Component} from "react";
-import Orders from "./components/OrdersHistory";
+import Orders from "./components/Orders";
 
 class App extends Component {
   constructor(props) {

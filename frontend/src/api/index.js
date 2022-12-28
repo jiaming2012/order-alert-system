@@ -1,7 +1,8 @@
 // api/index.js
-var socket = new WebSocket("ws://localhost:8080/orders");
 
 let connect = cb => {
+    let socket = new WebSocket("ws://localhost:8080/orders");
+
     console.log("Attempting Connection...");
 
     socket.onopen = () => {
@@ -20,6 +21,10 @@ let connect = cb => {
 
     socket.onclose = event => {
         console.log("Socket Closed Connection: ", event);
+
+        setTimeout(() => {
+            connect(cb);
+        }, 8000);
     };
 
     socket.onerror = error => {
@@ -27,9 +32,4 @@ let connect = cb => {
     };
 };
 
-let sendMsg = msg => {
-    console.log("sending msg: ", msg);
-    socket.send(msg);
-};
-
-export { connect, sendMsg };
+export { connect };

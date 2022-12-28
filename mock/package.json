@@ -3,7 +3,8 @@
   "description": "An api for alerting customers the status of their order ",
   "version": "1.0.0",
   "scripts": {
-    "start": "node src/api/index.js"
+    "start": "node src/api/index.js",
+    "dev": "nodemon src/api/index.js"
   },
   "dependencies": {
     "@asyncapi/parser": "^1.17.2",
@@ -11,5 +12,8 @@
     "express": "4.17.1",
     "express-ws": "4.0.0",
     "node-yaml-config": "0.0.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
   }
 }
