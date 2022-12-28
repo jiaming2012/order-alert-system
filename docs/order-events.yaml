@@ -37,19 +37,27 @@ components:
         - name: Single Order
           summary: Contains a single customer order
           payload:
-            - orderId: 1
+            - id: 1
+              orderId: 21
+              createdAt: "2022-07-04T02:46:54"
               phoneNumber: "202-555-4312"
               status: "open"
         - name: Multiple Orders
           summary: Contains three customer orders
           payload:
-            - orderId: 2
+            - id: 1
+              orderId: 2
+              createdAt: "2022-07-04T02:46:55"
               phoneNumber: "202-555-4314"
               status: "open"
-            - orderId: 4
+            - id: 2
+              orderId: 4
+              createdAt: "2022-07-04T02:46:56"
               phoneNumber: "202-555-4315"
               status: "awaiting_pickup"
-            - orderId: 5
+            - id: 3
+              orderId: 5
+              createdAt: "2022-07-04T02:47:54"
               phoneNumber: "202-555-4316"
               status: "open"
       payload:
@@ -63,11 +71,19 @@ components:
       payload:
         type: object
         required:
+          - id
+          - createdAt
           - orderId
           - phoneNumber
           - status
         additionalProperties: false
         properties:
+          id:
+            description: Unique identifier created by the backend.
+            type: number
+          createdAt:
+            description: The timestamp at which the order was created at by the user in ISO format.
+            type: string
           orderId:
             description: The customer's order id.
             type: number

@@ -28,7 +28,7 @@ service.subOrdersMessage = async (ws) => {
     function generateResponse() {
       const template = `[
       {{#repeat 0 3}}
-      {"orderId": "{{int 0 10}}","phoneNumber": "{{phone "+1 (xxx) xxx-xxxx"}}","status": "{{status}}"}
+      {"id": "{{@index}}", "orderId": "{{int 0 10}}","createdAt": "{{date '2022' '2023' 'YYYY-MM-DDTHH:mm:ss'}}","phoneNumber": "{{phone "+1 (xxx) xxx-xxxx"}}","status": "{{status}}"}
       {{/repeat}}
     ]`;
       return dummy.parse(template, { helpers: myHelpers });
