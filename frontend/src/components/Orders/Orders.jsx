@@ -10,8 +10,19 @@ class Orders extends Component {
 
         return (
             <div className="Orders">
-                <h2>Order # | Created At | Phone Number</h2>
-                {orders}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Created At</th>
+                            <th>Phone Number</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {orders}
+                    </tbody>
+                </table>
             </div>
         )
     }

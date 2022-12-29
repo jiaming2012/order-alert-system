@@ -17,20 +17,12 @@ class OrderDetails extends Component {
         let createdAt = moment(this.props.order.createdAt).format("h:mm a");
 
         return (
-            <div className="Message">
-                <div id="container">
-                    <div className="containerText">
-                        {this.props.order.orderId}
-                    </div>
-                    <div className="containerText">
-                        {createdAt}
-                    </div>
-                    <div className="containerText">
-                        {this.props.order.phoneNumber}
-                    </div>
-                    <ButtonGroup orderState={this.props.order.status} />
-                </div>
-            </div>
+            <tr>
+                <td>{this.props.order.orderId}</td>
+                <td>{createdAt}</td>
+                <td>{this.props.order.phoneNumber}</td>
+                <td><ButtonGroup orderState={this.props.order.status} /></td>
+            </tr>
         )
     }
 }
