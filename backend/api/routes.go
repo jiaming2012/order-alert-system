@@ -43,7 +43,7 @@ func SetupRoutes() {
 	http.HandleFunc("/", renderHomepage)
 	http.HandleFunc("/thank-you", renderAsset("template/thank-you.html", "text/html"))
 	http.HandleFunc("/login", login)
-	http.HandleFunc("/contact_form_style.css", renderAsset("assets/contact_form_style.css", "text/css"))
+	http.HandleFunc("/assets/contact_form_style.css", renderAsset("assets/contact_form_style.css", "text/css"))
 	http.HandleFunc("/assets/thank-you.css", renderAsset("assets/thank-you.css", "text/css"))
 	http.HandleFunc("/400-error.html", renderTemplateWithParams)
 	http.HandleFunc("/assets/400-error.css", renderAsset("assets/400-error.css", "text/css"))
