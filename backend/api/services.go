@@ -68,7 +68,7 @@ func PlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
 
 	order.Status = updateOrderReq.Status
 	if err = order.Save(); err != nil {
-		sendBadServerErrResponse(err, w)
+		sendBadServerHtmlResponse(err, w)
 		return
 	}
 
@@ -95,7 +95,7 @@ func PlaceNewOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := newOrder.Create(); err != nil {
-		sendBadServerErrResponse(err, w)
+		sendBadServerHtmlResponse(err, w)
 		return
 	}
 
@@ -108,14 +108,14 @@ func renderHomepage(w http.ResponseWriter, r *http.Request) {
 		err := parsedTemplate.Execute(w, nil)
 		if err != nil {
 			log.Println("Error executing template :", err)
-			sendBadServerErrResponse(err, w)
+			sendBadServerHtmlResponse(err, w)
 		}
 	} else if r.Method == "POST" {
 		fmt.Println("POST")
 		err := r.ParseForm()
 		if err != nil {
 			log.Println("Error executing template :", err)
-			sendBadServerErrResponse(err, w)
+			sendBadServerHtmlResponse(err, w)
 		}
 
 		for k, v := range r.Form {
@@ -127,26 +127,48 @@ func renderHomepage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func renderResponse(filename string, contentType string, w http.ResponseWriter) {
+	buf, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		log.Println(err)
+		sendBadServerHtmlResponse(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", contentType)
+	w.Write(buf)
+}
+
 func renderAsset(filename string, contentType string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		buf, err := ioutil.ReadFile(filename)
-
-		if err != nil {
-			log.Println(err)
-			sendBadServerErrResponse(err, w)
-			return
-		}
-
-		w.Header().Set("Content-Type", contentType)
-		w.Write(buf)
+		renderResponse(filename, contentType, w)
 	}
 }
 
-func renderContactFormTemplate(w http.ResponseWriter, r *http.Request) {
-	parsedTemplate, _ := template.ParseFiles("template/contact_form_style.css")
-	err := parsedTemplate.Execute(w, nil)
+func renderTemplateWithParams(w http.ResponseWriter, r *http.Request) {
+	errorMsg := r.URL.Query().Get("errorMsg")
+	if len(errorMsg) == 0 {
+		sendBadServerHtmlResponse(fmt.Errorf("expected errorMsg for client error response"), w)
+		return
+	}
+
+	err := models.BadResponseErr{Type: "invalid_input", Msg: errorMsg}
+	renderTemplate("template/4s00-error.html", err, w)
+}
+
+func renderTemplate(filename string, data any, w http.ResponseWriter) {
+	parsedTemplate, err := template.ParseFiles(filename)
+	if err != nil {
+		log.Println("Error parsing file:", err)
+		sendBadServerHtmlResponse(err, w)
+		return
+	}
+
+	err = parsedTemplate.Execute(w, data)
 	if err != nil {
 		log.Println("Error executing template :", err)
+		sendBadServerHtmlResponse(err, w)
 		return
 	}
 }

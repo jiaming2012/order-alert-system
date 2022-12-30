@@ -6,7 +6,7 @@ body
     width:100%;
     font-family: "Myriad Pro","Helvetica Neue",Helvetica,Arial,Sans-Serif;
     background-color:#F1E5AC;
-    background-image: url("assets/logo.jpg");
+    background-image: url("../template/assets/logo.jpg");
     background-repeat: repeat-y;
 }
 #logo-img {

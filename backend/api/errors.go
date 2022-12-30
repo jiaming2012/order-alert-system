@@ -3,21 +3,22 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/jiaming2012/order-alert-system/backend/models"
 	"net/http"
 )
-
-type badResponseErr struct {
-	Type string `json:"type"`
-	Msg  string `json:"msg"`
-}
 
 func sendBadServerErrResponse(err error, w http.ResponseWriter) {
 	w.WriteHeader(500)
 	fmt.Printf("Error: Bad server: %v\n", err)
 }
 
+func sendBadServerHtmlResponse(err error, w http.ResponseWriter) {
+	sendBadServerErrResponse(err, w)
+	renderResponse("template/500-error.html", "text/html", w)
+}
+
 func sendBadRequestErrResponse(errType string, err error, w http.ResponseWriter) {
-	resp := badResponseErr{
+	resp := models.BadResponseErr{
 		Type: errType,
 		Msg:  err.Error(),
 	}
