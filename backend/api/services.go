@@ -79,12 +79,12 @@ func PlaceNewOrder(w http.ResponseWriter, r *http.Request) {
 	var newOrderReq NewOrderRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&newOrderReq); err != nil {
-		sendBadRequestErrResponse("validation", fmt.Errorf("PlaceNewOrder: json: err: %w", err), w)
+		sendBadServerHtmlResponse(fmt.Errorf("PlaceNewOrder: json: err: %w", err), w)
 		return
 	}
 
 	if err := newOrderReq.Validate(); err != nil {
-		sendBadRequestErrResponse("validation", err, w)
+		sendBadServerHtmlResponse(err, w)
 		return
 	}
 
