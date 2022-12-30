@@ -11,21 +11,8 @@ import (
 	"net/http"
 )
 
-type UpdateOrderRequest struct {
-	Id     string `json:"id"`
-	Status string `json:"status"`
-}
-
-func (req *UpdateOrderRequest) Validate() error {
-	if req.Status != "open" && req.Status != "awaiting_pickup" && req.Status != "closed" {
-		return fmt.Errorf("UpdateOrderRequest: invalid order status %v", req.Status)
-	}
-
-	return nil
-}
-
 func HandlePlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
-	var updateOrderReq UpdateOrderRequest
+	var updateOrderReq models.UpdateOrderRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&updateOrderReq); err != nil {
 		sendBadRequestErrResponse("validation", fmt.Errorf("HandlePlaceOrderUpdate: json: err: %w", err), w)
@@ -94,17 +81,17 @@ func placeNewOrder(req models.NewOrderRequest, isHtmlRequest bool, w http.Respon
 
 func renderHomepage(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		parsedTemplate, _ := template.ParseFiles("template/index.html")
+		parsedTemplate, _ := template.ParseFiles("templates/index.html")
 		err := parsedTemplate.Execute(w, nil)
 		if err != nil {
-			log.Println("Error executing template :", err)
+			log.Println("Error executing templates :", err)
 			sendBadServerHtmlResponse(err, w)
 			return
 		}
 	} else if r.Method == "POST" {
 		err := r.ParseForm()
 		if err != nil {
-			log.Println("Error executing template :", err)
+			log.Println("Error executing templates :", err)
 			sendBadServerHtmlResponse(err, w)
 			return
 		}
@@ -149,7 +136,7 @@ func renderTemplateWithParams(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := models.BadResponseError{Type: "invalid_input", Msg: errorMsg}
-	renderTemplate("template/400-error.html", err, w)
+	renderTemplate("templates/400-error.html", err, w)
 }
 
 func renderTemplate(filename string, data any, w http.ResponseWriter) {
@@ -162,7 +149,7 @@ func renderTemplate(filename string, data any, w http.ResponseWriter) {
 
 	err = parsedTemplate.Execute(w, data)
 	if err != nil {
-		log.Println("Error executing template :", err)
+		log.Println("Error executing templates :", err)
 		sendBadServerHtmlResponse(err, w)
 		return
 	}

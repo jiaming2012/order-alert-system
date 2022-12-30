@@ -15,7 +15,7 @@ func sendBadServerErrResponse(err error, w http.ResponseWriter) {
 
 func sendBadServerHtmlResponse(err error, w http.ResponseWriter) {
 	sendBadServerErrResponse(err, w)
-	renderResponse("template/500-error.html", "text/html", w)
+	renderResponse("templates/500-error.html", "text/html", w)
 }
 
 func sendBadRequestHtmlResponse(err error, w http.ResponseWriter, r *http.Request) {

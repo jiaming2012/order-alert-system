@@ -24,7 +24,7 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 
 //func handlePage(writer http.ResponseWriter, request *http.Request) {
 //	if request.Method == "GET" {
-//		tmplt, _ = template.ParseFiles("tutorial.html")
+//		tmplt, _ = templates.ParseFiles("tutorial.html")
 //
 //		event := News{
 //			Headline: "makeuseof.com has everything Tech",
@@ -41,13 +41,13 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 
 func SetupRoutes() {
 	http.HandleFunc("/", renderHomepage)
-	http.HandleFunc("/thank-you.html", renderAsset("template/thank-you.html", "text/html"))
+	http.HandleFunc("/thank-you.html", renderAsset("templates/thank-you.html", "text/html"))
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/assets/contact_form_style.css", renderAsset("assets/contact_form_style.css", "text/css"))
 	http.HandleFunc("/assets/thank-you.css", renderAsset("assets/thank-you.css", "text/css"))
 	http.HandleFunc("/400-error.html", renderTemplateWithParams)
 	http.HandleFunc("/assets/400-error.css", renderAsset("assets/400-error.css", "text/css"))
-	http.HandleFunc("/500-error.html", renderAsset("template/500-error.html", "text/html"))
+	http.HandleFunc("/500-error.html", renderAsset("templates/500-error.html", "text/html"))
 	http.HandleFunc("/assets/500-error.css", renderAsset("assets/500-error.css", "text/css"))
 	http.HandleFunc("/assets/500-error.js", renderAsset("assets/500-error.js", "text/javascript"))
 	http.HandleFunc("/assets/particles.js", renderAsset("assets/particles.js", "text/javascript"))

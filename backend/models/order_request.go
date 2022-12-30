@@ -32,3 +32,16 @@ func (req *NewOrderRequest) Validate(validator SmsValidator) *ApiError {
 
 	return nil
 }
+
+type UpdateOrderRequest struct {
+	Id     string `json:"id"`
+	Status string `json:"status"`
+}
+
+func (req *UpdateOrderRequest) Validate() error {
+	if req.Status != "open" && req.Status != "awaiting_pickup" && req.Status != "closed" {
+		return fmt.Errorf("UpdateOrderRequest: invalid order status %v", req.Status)
+	}
+
+	return nil
+}
