@@ -3,8 +3,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/jiaming2012/order-alert-system/backend/constants"
 	"github.com/jiaming2012/order-alert-system/backend/models"
 	"github.com/jiaming2012/order-alert-system/backend/services"
+	"github.com/jiaming2012/order-alert-system/backend/sms"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -48,14 +50,14 @@ func HandlePlaceNewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !placeNewOrder(newOrderReq, false, w, r) {
+	if !placeNewOrder(&newOrderReq, false, w, r) {
 		return
 	}
 
 	w.WriteHeader(201)
 }
 
-func placeNewOrder(req models.NewOrderRequest, isHtmlRequest bool, w http.ResponseWriter, r *http.Request) bool {
+func placeNewOrder(req *models.NewOrderRequest, isHtmlRequest bool, w http.ResponseWriter, r *http.Request) bool {
 	if err := services.PlaceNewOrder(req); err != nil {
 		if err.Type == models.ClientError {
 			if isHtmlRequest {
@@ -91,7 +93,7 @@ func renderHomepage(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 		err := r.ParseForm()
 		if err != nil {
-			log.Println("Error executing templates :", err)
+			log.Println("Error executing templates: ", err)
 			sendBadServerHtmlResponse(err, w)
 			return
 		}
@@ -99,7 +101,14 @@ func renderHomepage(w http.ResponseWriter, r *http.Request) {
 		orderNumber := r.FormValue("order_number")
 		phoneNumber := r.FormValue("phone_number")
 
-		if !placeNewOrder(models.NewOrderRequest{OrderNumber: orderNumber, PhoneNumber: phoneNumber}, true, w, r) {
+		req := &models.NewOrderRequest{OrderNumber: orderNumber, PhoneNumber: phoneNumber}
+		if !placeNewOrder(req, true, w, r) {
+			return
+		}
+
+		if err = sms.SendSMS(req.FormattedPhoneNumber, constants.SmsNotificationWelcomeMessage); err != nil {
+			log.Println("Error sending SMS: ", err)
+			sendBadServerHtmlResponse(err, w)
 			return
 		}
 

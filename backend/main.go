@@ -62,11 +62,6 @@ func main() {
 		fmt.Println(order.OrderNumber, order.PhoneNumber, order.Status, order.ID)
 	}
 
-	//if err = sms.SendSMS("+18582227085", "Sent from your Twilio trial account - You rock Natasha! I am working on the order notification system, while waiting for my mom to finish packing. We are going to head back to DC tonight. We have to stop by my Aunts house in Phila first, so it's going to be a late night :("); err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-
 	fmt.Println("Setting up http api and websockets ...")
 	api.SetupRoutes()
 	fmt.Println("Websocket setup complete!")

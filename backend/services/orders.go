@@ -2,7 +2,7 @@ package services
 
 import "github.com/jiaming2012/order-alert-system/backend/models"
 
-func PlaceNewOrder(newOrderReq models.NewOrderRequest) *models.ApiError {
+func PlaceNewOrder(newOrderReq *models.NewOrderRequest) *models.ApiError {
 	if err := newOrderReq.Validate(Sms{}); err != nil {
 		return err
 	}
