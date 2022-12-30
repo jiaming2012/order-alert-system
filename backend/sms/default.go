@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jiaming2012/order-alert-system/backend/constants"
+	"github.com/jiaming2012/order-alert-system/backend/models"
 	"github.com/jiaming2012/order-alert-system/backend/pubsub"
 	"github.com/twilio/twilio-go"
+	twilioclient "github.com/twilio/twilio-go/client"
 	api "github.com/twilio/twilio-go/rest/api/v2010"
 	lookups "github.com/twilio/twilio-go/rest/lookups/v1"
 	"io/ioutil"
@@ -28,7 +30,7 @@ func Send(ev pubsub.NewOrderCreatedEvent) {
 	fmt.Printf("send sms for %v\n", ev)
 }
 
-func ValidatePhoneNumber(phoneNumber string) (string, error) {
+func ValidatePhoneNumber(phoneNumber string) (string, *models.ApiError) {
 	// Find your Account SID and Auth Token at twilio.com/console
 	// and set the environment variables. See http://twil.io/secure
 	client := twilio.NewRestClient()
@@ -38,12 +40,20 @@ func ValidatePhoneNumber(phoneNumber string) (string, error) {
 
 	resp, err := client.LookupsV1.FetchPhoneNumber(phoneNumber, params)
 	if err != nil {
-		return "", err
+		switch e := err.(type) {
+		case *twilioclient.TwilioRestError:
+			return "", &models.ApiError{
+				Type:  models.ServerError,
+				Error: fmt.Errorf("twilio: %v, status: %v", e.Message, e.Status),
+			}
+		default:
+			return "", &models.ApiError{Type: models.ServerError, Error: e}
+		}
 	} else {
 		if resp.NationalFormat != nil {
 			return *resp.NationalFormat, nil
 		} else {
-			return "", fmt.Errorf("failed to validate number %v", phoneNumber)
+			return "", &models.ApiError{Type: models.ClientError, Error: fmt.Errorf("failed to validate number %v", phoneNumber)}
 		}
 	}
 }
@@ -79,7 +89,7 @@ func SendSMS(phoneNumber string, msg string) error {
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.SetBasicAuth(constants.TwillioUserId, constants.TwillioAuthToken)
+	req.SetBasicAuth(constants.TwillioAccountSId, constants.TwillioAuthToken)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -96,7 +106,7 @@ func SendSMS(phoneNumber string, msg string) error {
 		if jsonErr := json.Unmarshal(bodyText, &respErr); jsonErr != nil {
 			return jsonErr
 		}
-		return fmt.Errorf("Send failed: %v", respErr)
+		return fmt.Errorf("send failed: %v", respErr)
 	}
 
 	return nil

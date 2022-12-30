@@ -41,7 +41,7 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 
 func SetupRoutes() {
 	http.HandleFunc("/", renderHomepage)
-	http.HandleFunc("/thank-you", renderAsset("template/thank-you.html", "text/html"))
+	http.HandleFunc("/thank-you.html", renderAsset("template/thank-you.html", "text/html"))
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/assets/contact_form_style.css", renderAsset("assets/contact_form_style.css", "text/css"))
 	http.HandleFunc("/assets/thank-you.css", renderAsset("assets/thank-you.css", "text/css"))
@@ -53,10 +53,10 @@ func SetupRoutes() {
 	http.HandleFunc("/assets/particles.js", renderAsset("assets/particles.js", "text/javascript"))
 	http.HandleFunc("/assets/particles-min-script.js", renderAsset("assets/particles-min-script.js", "text/javascript"))
 	http.HandleFunc("/assets/logo.jpg", renderAsset("assets/logo.jpg", "image/jpg"))
-	http.HandleFunc("/order", PlaceNewOrder)
+	http.HandleFunc("/order", HandlePlaceNewOrder)
 
 	// todo: add auth
-	http.HandleFunc("/admin/order", PlaceOrderUpdate)
+	http.HandleFunc("/admin/order", HandlePlaceOrderUpdate)
 
 	http.HandleFunc("/orders", func(w http.ResponseWriter, r *http.Request) {
 		pool := websocket.NewPool()

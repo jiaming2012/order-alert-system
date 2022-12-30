@@ -4,34 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/jiaming2012/order-alert-system/backend/models"
-	"github.com/jiaming2012/order-alert-system/backend/sms"
+	"github.com/jiaming2012/order-alert-system/backend/services"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 )
-
-type NewOrderRequest struct {
-	OrderId              string `json:"order_number"`
-	PhoneNumber          string `json:"phone_number"`
-	FormattedPhoneNumber string
-}
-
-func (req *NewOrderRequest) Validate() error {
-	formattedPhoneNumber, err := sms.ValidatePhoneNumber(req.PhoneNumber)
-	if err != nil {
-		return err
-	}
-
-	req.FormattedPhoneNumber = formattedPhoneNumber
-
-	if _, err = strconv.Atoi(req.OrderId); err != nil {
-		return fmt.Errorf("OrderNumber %v must be a number", req.OrderId)
-	}
-
-	return nil
-}
 
 type UpdateOrderRequest struct {
 	Id     string `json:"id"`
@@ -46,11 +24,11 @@ func (req *UpdateOrderRequest) Validate() error {
 	return nil
 }
 
-func PlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
+func HandlePlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
 	var updateOrderReq UpdateOrderRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&updateOrderReq); err != nil {
-		sendBadRequestErrResponse("validation", fmt.Errorf("PlaceOrderUpdate: json: err: %w", err), w)
+		sendBadRequestErrResponse("validation", fmt.Errorf("HandlePlaceOrderUpdate: json: err: %w", err), w)
 		return
 	}
 
@@ -75,31 +53,43 @@ func PlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-func PlaceNewOrder(w http.ResponseWriter, r *http.Request) {
-	var newOrderReq NewOrderRequest
+func HandlePlaceNewOrder(w http.ResponseWriter, r *http.Request) {
+	var newOrderReq models.NewOrderRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&newOrderReq); err != nil {
-		sendBadServerHtmlResponse(fmt.Errorf("PlaceNewOrder: json: err: %w", err), w)
+		sendBadServerHtmlResponse(fmt.Errorf("HandlePlaceNewOrder: json: err: %w", err), w)
 		return
 	}
 
-	if err := newOrderReq.Validate(); err != nil {
-		sendBadServerHtmlResponse(err, w)
-		return
-	}
-
-	newOrder := models.Order{
-		OrderNumber: newOrderReq.OrderId,
-		PhoneNumber: newOrderReq.PhoneNumber,
-		Status:      "open",
-	}
-
-	if err := newOrder.Create(); err != nil {
-		sendBadServerHtmlResponse(err, w)
+	if !placeNewOrder(newOrderReq, false, w, r) {
 		return
 	}
 
 	w.WriteHeader(201)
+}
+
+func placeNewOrder(req models.NewOrderRequest, isHtmlRequest bool, w http.ResponseWriter, r *http.Request) bool {
+	if err := services.PlaceNewOrder(req); err != nil {
+		if err.Type == models.ClientError {
+			if isHtmlRequest {
+				sendBadRequestHtmlResponse(err.Error, w, r)
+			} else {
+				sendBadRequestErrResponse("validation", err.Error, w)
+			}
+
+			return false
+		} else {
+			if isHtmlRequest {
+				sendBadServerHtmlResponse(err.Error, w)
+			} else {
+				sendBadServerErrResponse(err.Error, w)
+			}
+
+			return false
+		}
+	}
+
+	return true
 }
 
 func renderHomepage(w http.ResponseWriter, r *http.Request) {
@@ -109,19 +99,24 @@ func renderHomepage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error executing template :", err)
 			sendBadServerHtmlResponse(err, w)
+			return
 		}
 	} else if r.Method == "POST" {
-		fmt.Println("POST")
 		err := r.ParseForm()
 		if err != nil {
 			log.Println("Error executing template :", err)
 			sendBadServerHtmlResponse(err, w)
+			return
 		}
 
-		for k, v := range r.Form {
-			fmt.Println(k, v)
+		orderNumber := r.FormValue("order_number")
+		phoneNumber := r.FormValue("phone_number")
+
+		if !placeNewOrder(models.NewOrderRequest{OrderNumber: orderNumber, PhoneNumber: phoneNumber}, true, w, r) {
+			return
 		}
-		fmt.Println("... values")
+
+		http.Redirect(w, r, "/thank-you.html", http.StatusSeeOther)
 	} else {
 		sendBadRequestErrResponse("bad_request", fmt.Errorf("unknown http method %v", r.Method), w)
 	}
@@ -153,8 +148,8 @@ func renderTemplateWithParams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := models.BadResponseErr{Type: "invalid_input", Msg: errorMsg}
-	renderTemplate("template/4s00-error.html", err, w)
+	err := models.BadResponseError{Type: "invalid_input", Msg: errorMsg}
+	renderTemplate("template/400-error.html", err, w)
 }
 
 func renderTemplate(filename string, data any, w http.ResponseWriter) {

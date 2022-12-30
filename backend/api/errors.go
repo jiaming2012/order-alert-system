@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jiaming2012/order-alert-system/backend/models"
 	"net/http"
+	"net/url"
 )
 
 func sendBadServerErrResponse(err error, w http.ResponseWriter) {
@@ -17,8 +18,13 @@ func sendBadServerHtmlResponse(err error, w http.ResponseWriter) {
 	renderResponse("template/500-error.html", "text/html", w)
 }
 
+func sendBadRequestHtmlResponse(err error, w http.ResponseWriter, r *http.Request) {
+	encodedErrorMsg := url.QueryEscape(err.Error())
+	http.Redirect(w, r, fmt.Sprintf("/400-error.html?errorMsg=%s", encodedErrorMsg), http.StatusSeeOther)
+}
+
 func sendBadRequestErrResponse(errType string, err error, w http.ResponseWriter) {
-	resp := models.BadResponseErr{
+	resp := models.BadResponseError{
 		Type: errType,
 		Msg:  err.Error(),
 	}
