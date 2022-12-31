@@ -3,7 +3,7 @@ import "./Header.scss";
 
 const Header = () => (
     <div className="header">
-        <h2>YumYums Order Alert System</h2>
+        <h2>YumYums Order Messenger</h2>
     </div>
 );
 

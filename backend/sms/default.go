@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jiaming2012/order-alert-system/backend/constants"
 	"github.com/jiaming2012/order-alert-system/backend/models"
-	"github.com/jiaming2012/order-alert-system/backend/pubsub"
 	"github.com/twilio/twilio-go"
 	twilioclient "github.com/twilio/twilio-go/client"
 	api "github.com/twilio/twilio-go/rest/api/v2010"
@@ -20,10 +19,6 @@ type smsErr struct {
 
 func (e smsErr) String() string {
 	return fmt.Sprintf("%v Code=%v", e.Message, e.Code)
-}
-
-func Send(ev pubsub.NewOrderCreatedEvent) {
-	fmt.Printf("send sms for %v\n", ev)
 }
 
 func ValidatePhoneNumber(phoneNumber string) (string, *models.ApiError) {
@@ -75,35 +70,3 @@ func SendSMS(phoneNumber string, msg string) error {
 		}
 	}
 }
-
-//func SendSMS(phoneNumber string, msg string) error {
-//	client := &http.Client{}
-//	var data = strings.NewReader(fmt.Sprintf("To=%s&MessagingServiceSid=%s&Body=%s", phoneNumber, constants.TwillioMessagingServiceSid, msg))
-//	req, err := http.NewRequest("POST", fmt.Sprintf(constants.TwillioUrl), data)
-//	if err != nil {
-//		return err
-//	}
-//
-//	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-//	req.SetBasicAuth(constants.TwillioAccountSId, constants.TwillioAuthToken)
-//	resp, err := client.Do(req)
-//	if err != nil {
-//		return err
-//	}
-//
-//	defer resp.Body.Close()
-//
-//	if resp.StatusCode != http.StatusCreated {
-//		var respErr smsErr
-//		bodyText, ioErr := ioutil.ReadAll(resp.Body)
-//		if ioErr != nil {
-//			return ioErr
-//		}
-//		if jsonErr := json.Unmarshal(bodyText, &respErr); jsonErr != nil {
-//			return jsonErr
-//		}
-//		return fmt.Errorf("send failed: %v", respErr)
-//	}
-//
-//	return nil
-//}

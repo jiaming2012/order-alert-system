@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jiaming2012/order-alert-system/backend/database"
+	"github.com/jiaming2012/order-alert-system/backend/pubsub"
 	"gorm.io/gorm"
 	"time"
 )
@@ -19,6 +20,7 @@ func (o *Order) Create() error {
 	defer database.ReleaseDB()
 
 	tx := db.Create(o)
+	pubsub.Publish(pubsub.OrderCreated, nil)
 	return tx.Error
 }
 
@@ -27,6 +29,7 @@ func (o *Order) Save() error {
 	defer database.ReleaseDB()
 
 	tx := db.Save(o)
+	pubsub.Publish(pubsub.OrderUpdated, nil)
 	return tx.Error
 }
 
@@ -46,6 +49,6 @@ func GetOpenOrders() ([]Order, error) {
 
 	var orders []Order
 
-	tx := db.Where("status IN ?", []string{"open", "awaiting_pickup"}).Find(&orders)
+	tx := db.Order("created_at ASC").Where("status IN ?", []string{"open", "awaiting_pickup"}).Find(&orders)
 	return orders, tx.Error
 }

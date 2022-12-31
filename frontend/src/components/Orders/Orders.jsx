@@ -4,9 +4,13 @@ import OrderDetails from "../OrderDetails";
 
 class Orders extends Component {
     render() {
-        const orders = this.props.orders.map(order =>
-            <OrderDetails key={order.id} order={order} />
-        );
+        const orders = this.props.orders.length > 0 ? (
+            this.props.orders.map(order =>
+                <OrderDetails key={order.ID} order={order} />
+            )
+        ) : null;
+
+        console.log('props: ', this.props)
 
         return (
             <div className="Orders">

@@ -3,17 +3,18 @@ package pubsub
 type EventName int
 
 const (
-	NewOrderCreated EventName = iota
+	OrderCreated EventName = iota
+	OrderUpdated
 )
 
-type NewOrderCreatedEvent struct {
-	Data string
-}
+type OrderEvent struct{}
 
 func (ev EventName) String() string {
 	switch ev {
-	case NewOrderCreated:
-		return "NewOrderCreated"
+	case OrderCreated:
+		return "OrderCreated"
+	case OrderUpdated:
+		return "OrderUpdated"
 	default:
 		return "Undefined"
 	}

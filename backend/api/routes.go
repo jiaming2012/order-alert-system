@@ -2,6 +2,8 @@ package api
 
 import (
 	"fmt"
+	"github.com/jiaming2012/order-alert-system/backend/models"
+	"github.com/jiaming2012/order-alert-system/backend/pubsub"
 	"github.com/jiaming2012/order-alert-system/backend/websocket"
 	"net/http"
 )
@@ -22,24 +24,29 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	client.Read()
 }
 
-//func handlePage(writer http.ResponseWriter, request *http.Request) {
-//	if request.Method == "GET" {
-//		tmplt, _ = templates.ParseFiles("tutorial.html")
-//
-//		event := News{
-//			Headline: "makeuseof.com has everything Tech",
-//			Body:     "Visit MUO for anything technology related",
-//		}
-//
-//		err := tmplt.Execute(writer, event)
-//
-//		if err != nil {
-//			return
-//		}
-//	}
-//}
+func BroadcastOrders(pool *websocket.Pool) func(interface{}) {
+	return func(event interface{}) {
+		orders, err := models.GetOpenOrders()
+		if err != nil {
+			fmt.Println("error getting open orders: ", err)
+			return
+		}
+
+		fmt.Println("broadcasting ...")
+		pool.Broadcast <- orders
+	}
+}
 
 func SetupRoutes() {
+	pool := websocket.NewPool()
+	go pool.Start()
+	if err := pubsub.Subscribe(pubsub.OrderCreated, BroadcastOrders(pool)); err != nil {
+		panic(err)
+	}
+	if err := pubsub.Subscribe(pubsub.OrderUpdated, BroadcastOrders(pool)); err != nil {
+		panic(err)
+	}
+
 	http.HandleFunc("/", renderHomepage)
 	http.HandleFunc("/thank-you.html", renderAsset("templates/thank-you.html", "text/html"))
 	http.HandleFunc("/login", login)
@@ -59,9 +66,6 @@ func SetupRoutes() {
 	http.HandleFunc("/admin/order", HandlePlaceOrderUpdate)
 
 	http.HandleFunc("/orders", func(w http.ResponseWriter, r *http.Request) {
-		pool := websocket.NewPool()
-		go pool.Start()
-
 		serveWs(pool, w, r)
 	})
 }
