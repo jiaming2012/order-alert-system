@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jiaming2012/order-alert-system/backend/constants"
 	"github.com/jiaming2012/order-alert-system/backend/models"
 	"github.com/jiaming2012/order-alert-system/backend/services"
 	"github.com/jiaming2012/order-alert-system/backend/sms"
@@ -11,7 +10,16 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
+
+func welcomeMessage(orderNumber string) string {
+	return fmt.Sprintf("Thank you for ordering at YumYums Smokin' Grille. You're all set! We'll text you once order #%s is ready to pick up.", orderNumber)
+}
+
+func pickUpMessage() string {
+	return fmt.Sprintf("Hey there! We’ve got good news. Your order is ready for pickup! Come on by soon as you can.")
+}
 
 func HandlePlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
 	var updateOrderReq models.UpdateOrderRequest
@@ -31,6 +39,19 @@ func HandlePlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		sendBadRequestErrResponse("validation", fmt.Errorf("failed to find order using id %v", updateOrderReq.Id), w)
 		return
+	}
+
+	if updateOrderReq.Status == "awaiting_pickup" {
+		order.NotifiedAt = time.Now()
+		if err = sms.SendSMS(order.PhoneNumber, pickUpMessage()); err != nil {
+			log.Println("Error sending SMS: ", err)
+			sendBadServerHtmlResponse(err, w)
+			return
+		}
+	}
+
+	if updateOrderReq.Status == "picked_up" {
+		order.PickedUpAt = time.Now()
 	}
 
 	order.Status = updateOrderReq.Status
@@ -106,7 +127,7 @@ func renderHomepage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err = sms.SendSMS(req.FormattedPhoneNumber, constants.SmsNotificationWelcomeMessage); err != nil {
+		if err = sms.SendSMS(req.FormattedPhoneNumber, welcomeMessage(orderNumber)); err != nil {
 			log.Println("Error sending SMS: ", err)
 			sendBadServerHtmlResponse(err, w)
 			return

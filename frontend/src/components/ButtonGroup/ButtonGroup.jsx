@@ -1,12 +1,13 @@
 import React, {Component} from "react";
 import "./ButtonGroup.scss";
+import {updateOrderStatus} from "../../api/client";
 
 class ButtonGroup extends Component {
     constructor(props) {
         super(props);
 
         let lifecycle;
-        if (props.orderState == 'awaiting_pickup') {
+        if (props.orderState === 'awaiting_pickup') {
             lifecycle = 'ALERT_SENT';
         } else {
             lifecycle = 'NOT_CLICKED';
@@ -19,32 +20,39 @@ class ButtonGroup extends Component {
 
     deleteButtonClicked = () => {
         this.setState({ lifecycle: 'DELETE_BUTTON_CLICKED' });
-        console.log(this.state);
     }
 
     confirmButtonClicked = () => {
         this.setState({ lifecycle: 'CONFIRM_BUTTON_CLICKED' });
-        console.log(this.state);
     }
 
     submitButtonClicked = (msgType) => {
         switch (msgType) {
             case 'done': {
-                console.log('send web request: ', msgType);
-                // todo: send network call and update via websocket
-
-                this.setState({ lifecycle: 'ALERT_SENT' });
+                updateOrderStatus(`${this.props.orderId}`, 'awaiting_pickup')
+                    .then(res => {
+                        this.setState({ lifecycle: 'ALERT_SENT' });
+                    })
+                    .catch(err => {
+                        console.error(err);
+                    })
 
                 break;
             }
 
             case 'delete': {
-                console.log('send web request: ', msgType);
+                updateOrderStatus(`${this.props.orderId}`, 'deleted')
+                    .catch(err => {
+                        console.error(err);
+                    })
                 break;
             }
 
             case 'picked_up': {
-                console.log('send web request: ', msgType);
+                updateOrderStatus(`${this.props.orderId}`, 'picked_up')
+                    .catch(err => {
+                        console.error(err);
+                    })
                 break;
             }
 
@@ -67,7 +75,10 @@ class ButtonGroup extends Component {
             }
 
             case 'delete': {
-                console.log('send web request: ', state);
+                updateOrderStatus(`${this.props.orderId}`, 'deleted')
+                    .catch(err => {
+                        console.error(err);
+                    })
                 break;
             }
 
@@ -75,8 +86,6 @@ class ButtonGroup extends Component {
                 console.error(`unknown currentState ${state} for cancelButtonClicked`);
             }
         }
-
-        console.log(this.state);
     }
 
     render() {
@@ -87,7 +96,7 @@ class ButtonGroup extends Component {
                         Cancel
                     </button>
                     <button className="GreenButton" onClick={this.submitButtonClicked.bind(null, 'done')}>
-                        Send
+                        Notify
                     </button>
                 </div>
             ) : ((this.state.lifecycle === 'DELETE_BUTTON_CLICKED') ? (
@@ -101,9 +110,9 @@ class ButtonGroup extends Component {
                     </div>
                 ) : ((this.state.lifecycle === 'ALERT_SENT') ? (
                     <div className="ButtonGroup">
-                        <button className="YellowButton" onClick={this.cancelButtonClicked.bind(null, 'delete')}>
-                            Delete
-                        </button>
+                        {/*<button className="YellowButton" onClick={this.cancelButtonClicked.bind(null, 'delete')}>*/}
+                        {/*    Delete*/}
+                        {/*</button>*/}
                         <button className="OrangeButton" onClick={this.submitButtonClicked.bind(null, 'picked_up')}>
                             Picked{'\u00A0'}Up
                         </button>
@@ -111,10 +120,10 @@ class ButtonGroup extends Component {
                 ) : (
                 <div className="ButtonGroupImage">
                     <button>
-                        <img src="/check.png" alt="confirm button" onClick={this.confirmButtonClicked}/>
+                        <img id="check-btn" src="/check.png" alt="confirm button" onClick={this.confirmButtonClicked}/>
                     </button>
                     <button>
-                        <img src="/delete-button.png" alt="delete button" onClick={this.deleteButtonClicked}/>
+                        <img id="delete-btn" src="/delete-button.png" alt="delete button" onClick={this.deleteButtonClicked}/>
                     </button>
                 </div>
                 ))

@@ -9,10 +9,6 @@ class OrderDetails extends Component {
     phoneNumber;
     status;
 
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         let createdAt = moment(this.props.order.createdAt).format("h:mm a");
 
@@ -21,7 +17,7 @@ class OrderDetails extends Component {
                 <td>{this.props.order.orderNumber}</td>
                 <td>{createdAt}</td>
                 <td>{this.props.order.phoneNumber}</td>
-                <td><ButtonGroup orderState={this.props.order.status} /></td>
+                <td><ButtonGroup orderId={this.props.order.ID} orderState={this.props.order.status} /></td>
             </tr>
         )
     }

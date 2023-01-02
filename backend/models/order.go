@@ -13,6 +13,8 @@ type Order struct {
 	OrderNumber string    `json:"orderNumber"`
 	PhoneNumber string    `json:"phoneNumber"`
 	Status      string    `json:"status"`
+	NotifiedAt  time.Time
+	PickedUpAt  time.Time
 }
 
 func (o *Order) Create() error {

@@ -18,6 +18,18 @@ type Message struct {
 	Body string `json:"body"`
 }
 
+func BroadcastOrders(pool *Pool) func(interface{}) {
+	return func(event interface{}) {
+		orders, err := models.GetOpenOrders()
+		if err != nil {
+			fmt.Println("error getting open orders: ", err)
+			return
+		}
+
+		pool.Broadcast <- orders
+	}
+}
+
 func SendAllOrders(c *Client) error {
 	orders, err := models.GetOpenOrders()
 	if err != nil {

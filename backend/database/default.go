@@ -30,9 +30,7 @@ func Setup() error {
 }
 
 func GetDB() *gorm.DB {
-	fmt.Println("A")
 	mutex.Lock()
-	fmt.Println("B")
 	return db
 }
 

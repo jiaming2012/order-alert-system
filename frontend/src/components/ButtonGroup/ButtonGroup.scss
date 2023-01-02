@@ -10,7 +10,7 @@
     font-size: 20px;
     margin: 4px 5px;
     border-radius: 45%;
-    width: 100%;
+    width: 20%;
     justify-content: center;
   }
 
@@ -34,10 +34,10 @@
 .ButtonGroupImage {
   button {
     border: none;
-    background-color: white;
+    background-color: #f7f7f7;
     background-size: 10px;
     display: inline-block;
-    width: 100%;
+    width: 20%;
     height: auto;
   }
 
@@ -46,4 +46,13 @@
     height: 60px;
     display: inline-block;
   }
+
+  //#check-btn {
+  //  position: absolute;
+  //  z-index: 1;
+  //}
+  //
+  //#delete-btn {
+  //  position: relative;
+  //}
 }

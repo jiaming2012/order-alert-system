@@ -7,7 +7,8 @@ var TwillioMessagingServiceSid = "MG64f62acb0bbfe442b46a8be8dcbd57c0"
 var TwillioAccountSId = os.Getenv("TWILIO_ACCOUNT_SID")
 var TwillioAuthToken = os.Getenv("TWILIO_AUTH_TOKEN")
 var TwilioPhoneNumber = os.Getenv("TWILIO_PHONE_NUMBER")
-var SmsNotificationWelcomeMessage = "the is a test welcome message."
+var BasicAuthUser = os.Getenv("BASIC_AUTH_USER")
+var BasicAuthPass = os.Getenv("BASIC_AUTH_PASS")
 
 func init() {
 	if len(TwillioAccountSId) == 0 {

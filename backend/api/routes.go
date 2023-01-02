@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/jiaming2012/order-alert-system/backend/models"
 	"github.com/jiaming2012/order-alert-system/backend/pubsub"
 	"github.com/jiaming2012/order-alert-system/backend/websocket"
 	"net/http"
@@ -24,26 +23,13 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	client.Read()
 }
 
-func BroadcastOrders(pool *websocket.Pool) func(interface{}) {
-	return func(event interface{}) {
-		orders, err := models.GetOpenOrders()
-		if err != nil {
-			fmt.Println("error getting open orders: ", err)
-			return
-		}
-
-		fmt.Println("broadcasting ...")
-		pool.Broadcast <- orders
-	}
-}
-
 func SetupRoutes() {
 	pool := websocket.NewPool()
 	go pool.Start()
-	if err := pubsub.Subscribe(pubsub.OrderCreated, BroadcastOrders(pool)); err != nil {
+	if err := pubsub.Subscribe(pubsub.OrderCreated, websocket.BroadcastOrders(pool)); err != nil {
 		panic(err)
 	}
-	if err := pubsub.Subscribe(pubsub.OrderUpdated, BroadcastOrders(pool)); err != nil {
+	if err := pubsub.Subscribe(pubsub.OrderUpdated, websocket.BroadcastOrders(pool)); err != nil {
 		panic(err)
 	}
 
@@ -62,8 +48,7 @@ func SetupRoutes() {
 	http.HandleFunc("/assets/logo.jpg", renderAsset("assets/logo.jpg", "image/jpg"))
 	http.HandleFunc("/order", HandlePlaceNewOrder)
 
-	// todo: add auth
-	http.HandleFunc("/admin/order", HandlePlaceOrderUpdate)
+	http.HandleFunc("/admin/order", allowCors(basicAuth(HandlePlaceOrderUpdate)))
 
 	http.HandleFunc("/orders", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(pool, w, r)

@@ -1,5 +1,5 @@
 import './App.css';
-import { connect, sendMsg } from "./api";
+import { connect } from "./api";
 import Header from "./components/Header/Header";
 import {Component} from "react";
 import Orders from "./components/Orders";

@@ -10,8 +10,6 @@ class Orders extends Component {
             )
         ) : null;
 
-        console.log('props: ', this.props)
-
         return (
             <div className="Orders">
                 <table>

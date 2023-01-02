@@ -1,9 +1,11 @@
 import React from "react";
 import "./Header.scss";
+import logo from "./logo.jpg";
 
 const Header = () => (
     <div className="header">
-        <h2>YumYums Order Messenger</h2>
+        <img src={logo} alt="" id="my-logo" />
+        <h2>Order Messenger</h2>
     </div>
 );
 
