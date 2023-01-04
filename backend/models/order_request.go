@@ -10,12 +10,26 @@ type SmsValidator interface {
 }
 
 type NewOrderRequest struct {
-	OrderNumber          string `json:"order_number"`
-	PhoneNumber          string `json:"phone_number"`
+	OrderNumber          string `json:"order_number" form:"order_number"`
+	PhoneNumber          string `json:"phone_number" form:"phone_number"`
 	FormattedPhoneNumber string
 }
 
 func (req *NewOrderRequest) Validate(validator SmsValidator) *ApiError {
+	if len(req.OrderNumber) == 0 {
+		return &ApiError{
+			Type:  ClientError,
+			Error: fmt.Errorf("please enter an order #"),
+		}
+	}
+
+	if len(req.PhoneNumber) == 0 {
+		return &ApiError{
+			Type:  ClientError,
+			Error: fmt.Errorf("please enter a phone number"),
+		}
+	}
+
 	formattedPhoneNumber, err := validator.ValidatePhoneNumber(req.PhoneNumber)
 	if err != nil {
 		return err

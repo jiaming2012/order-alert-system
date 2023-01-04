@@ -10,7 +10,7 @@ const basicAuthPass = process.env['REACT_APP_BASIC_AUTH_PASS'];
  * @param status - the new status that the order will be updated to
  */
 function updateOrderStatus(id, status) {
-    return axios.post(backendURL, {
+    return axios.post(`${backendURL}/admin/order`, {
         id,
         status
     }, { auth: {

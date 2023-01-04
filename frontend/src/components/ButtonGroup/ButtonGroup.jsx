@@ -1,6 +1,8 @@
 import React, {Component} from "react";
 import "./ButtonGroup.scss";
 import {updateOrderStatus} from "../../api/client";
+import checkBtn from "./check.png"
+import deleteBtn from "./delete-button.png"
 
 class ButtonGroup extends Component {
     constructor(props) {
@@ -120,10 +122,10 @@ class ButtonGroup extends Component {
                 ) : (
                 <div className="ButtonGroupImage">
                     <button>
-                        <img id="check-btn" src="/check.png" alt="confirm button" onClick={this.confirmButtonClicked}/>
+                        <img id="check-btn" src={checkBtn} alt="confirm button" onClick={this.confirmButtonClicked}/>
                     </button>
                     <button>
-                        <img id="delete-btn" src="/delete-button.png" alt="delete button" onClick={this.deleteButtonClicked}/>
+                        <img id="delete-btn" src={deleteBtn} alt="delete button" onClick={this.deleteButtonClicked}/>
                     </button>
                 </div>
                 ))

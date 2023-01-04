@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/jiaming2012/order-alert-system/backend/api"
 	"github.com/jiaming2012/order-alert-system/backend/database"
 	"github.com/jiaming2012/order-alert-system/backend/models"
 	"github.com/jiaming2012/order-alert-system/backend/pubsub"
-	"net/http"
 )
 
 const PORT = 8080
@@ -32,9 +32,14 @@ func main() {
 
 	fmt.Println("Event bus setup complete!")
 
-	fmt.Println("Setting up http api and websockets ...")
-	api.SetupRoutes()
+	router := gin.Default()
 
-	fmt.Println("Websocket setup complete!")
-	http.ListenAndServe(fmt.Sprintf(":%v", PORT), nil)
+	api.SetupRoutes(router)
+
+	fmt.Printf("listening on :%d\n", PORT)
+
+	router.Run(fmt.Sprintf(":%d", PORT))
+	//api.SetupRoutes()
+
+	//http.ListenAndServe(fmt.Sprintf(":%v", PORT), nil)
 }

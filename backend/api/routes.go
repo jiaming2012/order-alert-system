@@ -1,16 +1,17 @@
 package api
 
 import (
-	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/jiaming2012/order-alert-system/backend/constants"
 	"github.com/jiaming2012/order-alert-system/backend/pubsub"
 	"github.com/jiaming2012/order-alert-system/backend/websocket"
 	"net/http"
 )
 
-func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
-	conn, err := websocket.Upgrade(w, r)
+func serveWs(pool *websocket.Pool, ctx *gin.Context) {
+	conn, err := websocket.Upgrade(ctx.Writer, ctx.Request)
 	if err != nil {
-		fmt.Fprintf(w, "%+v\n", err)
+		sendBadServerErrResponse(err, ctx)
 		return
 	}
 
@@ -23,7 +24,23 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
 	client.Read()
 }
 
-func SetupRoutes() {
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func SetupRoutes(router *gin.Engine) {
 	pool := websocket.NewPool()
 	go pool.Start()
 	if err := pubsub.Subscribe(pubsub.OrderCreated, websocket.BroadcastOrders(pool)); err != nil {
@@ -33,24 +50,27 @@ func SetupRoutes() {
 		panic(err)
 	}
 
-	http.HandleFunc("/", renderHomepage)
-	http.HandleFunc("/thank-you.html", renderAsset("templates/thank-you.html", "text/html"))
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/assets/contact_form_style.css", renderAsset("assets/contact_form_style.css", "text/css"))
-	http.HandleFunc("/assets/thank-you.css", renderAsset("assets/thank-you.css", "text/css"))
-	http.HandleFunc("/400-error.html", renderTemplateWithParams)
-	http.HandleFunc("/assets/400-error.css", renderAsset("assets/400-error.css", "text/css"))
-	http.HandleFunc("/500-error.html", renderAsset("templates/500-error.html", "text/html"))
-	http.HandleFunc("/assets/500-error.css", renderAsset("assets/500-error.css", "text/css"))
-	http.HandleFunc("/assets/500-error.js", renderAsset("assets/500-error.js", "text/javascript"))
-	http.HandleFunc("/assets/particles.js", renderAsset("assets/particles.js", "text/javascript"))
-	http.HandleFunc("/assets/particles-min-script.js", renderAsset("assets/particles-min-script.js", "text/javascript"))
-	http.HandleFunc("/assets/logo.jpg", renderAsset("assets/logo.jpg", "image/jpg"))
-	http.HandleFunc("/order", HandlePlaceNewOrder)
+	router.LoadHTMLGlob("templates/*")
+	router.Static("/assets", "./assets")
 
-	http.HandleFunc("/admin/order", allowCors(basicAuth(HandlePlaceOrderUpdate)))
-
-	http.HandleFunc("/orders", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(pool, w, r)
+	router.GET("/", getHomepage)
+	router.GET("/favicon.ico", func(ctx *gin.Context) {
+		ctx.File("assets/logo.jpg")
 	})
+	router.GET("/400-error.html", renderTemplateWithParams)
+	router.GET("/thank-you.html", func(ctx *gin.Context) {
+		ctx.HTML(http.StatusOK, "thank-you.html", gin.H{})
+	})
+	router.POST("/", postHomepageForm)
+	router.POST("/order", handlePlaceNewOrder)
+	router.GET("/orders", func(ctx *gin.Context) {
+		serveWs(pool, ctx)
+	})
+
+	authorized := router.Group("/admin", gin.BasicAuth(gin.Accounts{
+		constants.BasicAuthUser: constants.BasicAuthPass,
+	}))
+	authorized.Use(CORSMiddleware())
+	authorized.Static("/", "web")
+	authorized.POST("/order", handlePlaceOrderUpdate)
 }

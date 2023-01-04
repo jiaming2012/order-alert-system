@@ -1,14 +1,11 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/jiaming2012/order-alert-system/backend/models"
 	"github.com/jiaming2012/order-alert-system/backend/services"
 	"github.com/jiaming2012/order-alert-system/backend/sms"
-	"html/template"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
 )
@@ -21,31 +18,28 @@ func pickUpMessage() string {
 	return fmt.Sprintf("Hey there! We’ve got good news. Your order is ready for pickup! Come on by soon as you can.")
 }
 
-func HandlePlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
+func handlePlaceOrderUpdate(ctx *gin.Context) {
 	var updateOrderReq models.UpdateOrderRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&updateOrderReq); err != nil {
-		sendBadRequestErrResponse("validation", fmt.Errorf("HandlePlaceOrderUpdate: json: err: %w", err), w)
-		return
+	if err := ctx.BindJSON(&updateOrderReq); err != nil {
+		sendBadRequestErrResponse("validation", err, ctx)
 	}
 
 	if err := updateOrderReq.Validate(); err != nil {
-		sendBadRequestErrResponse("validation", err, w)
+		sendBadRequestErrResponse("validation", err, ctx)
 		return
 	}
 
 	order, err := models.GetOrder(updateOrderReq.Id)
 	if err != nil {
-		fmt.Println(err)
-		sendBadRequestErrResponse("validation", fmt.Errorf("failed to find order using id %v", updateOrderReq.Id), w)
+		sendBadRequestErrResponse("validation", fmt.Errorf("failed to find order using id %v", updateOrderReq.Id), ctx)
 		return
 	}
 
 	if updateOrderReq.Status == "awaiting_pickup" {
 		order.NotifiedAt = time.Now()
 		if err = sms.SendSMS(order.PhoneNumber, pickUpMessage()); err != nil {
-			log.Println("Error sending SMS: ", err)
-			sendBadServerHtmlResponse(err, w)
+			sendBadServerHtmlResponse(err, ctx)
 			return
 		}
 	}
@@ -56,43 +50,43 @@ func HandlePlaceOrderUpdate(w http.ResponseWriter, r *http.Request) {
 
 	order.Status = updateOrderReq.Status
 	if err = order.Save(); err != nil {
-		sendBadServerHtmlResponse(err, w)
+		sendBadServerHtmlResponse(err, ctx)
 		return
 	}
 
-	w.WriteHeader(200)
+	ctx.Status(http.StatusOK)
 }
 
-func HandlePlaceNewOrder(w http.ResponseWriter, r *http.Request) {
+func handlePlaceNewOrder(ctx *gin.Context) {
 	var newOrderReq models.NewOrderRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&newOrderReq); err != nil {
-		sendBadServerHtmlResponse(fmt.Errorf("HandlePlaceNewOrder: json: err: %w", err), w)
+	if err := ctx.Bind(&newOrderReq); err != nil {
+		sendBadServerHtmlResponse(fmt.Errorf("handlePlaceNewOrder: json: err: %w", err), ctx)
 		return
 	}
 
-	if !placeNewOrder(&newOrderReq, false, w, r) {
+	if !placeNewOrder(&newOrderReq, false, ctx) {
 		return
 	}
 
-	w.WriteHeader(201)
+	ctx.Status(http.StatusCreated)
 }
 
-func placeNewOrder(req *models.NewOrderRequest, isHtmlRequest bool, w http.ResponseWriter, r *http.Request) bool {
+func placeNewOrder(req *models.NewOrderRequest, isHtmlRequest bool, ctx *gin.Context) bool {
 	if err := services.PlaceNewOrder(req); err != nil {
 		if err.Type == models.ClientError {
 			if isHtmlRequest {
-				sendBadRequestHtmlResponse(err.Error, w, r)
+				sendBadRequestHtmlResponse(err.Error, ctx)
 			} else {
-				sendBadRequestErrResponse("validation", err.Error, w)
+				sendBadRequestErrResponse("validation", err.Error, ctx)
 			}
 
 			return false
 		} else {
 			if isHtmlRequest {
-				sendBadServerHtmlResponse(err.Error, w)
+				sendBadServerHtmlResponse(err.Error, ctx)
 			} else {
-				sendBadServerErrResponse(err.Error, w)
+				sendBadServerErrResponse(err.Error, ctx)
 			}
 
 			return false
@@ -102,95 +96,36 @@ func placeNewOrder(req *models.NewOrderRequest, isHtmlRequest bool, w http.Respo
 	return true
 }
 
-func renderHomepage(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		parsedTemplate, _ := template.ParseFiles("templates/index.html")
-		err := parsedTemplate.Execute(w, nil)
-		if err != nil {
-			log.Println("Error executing templates :", err)
-			sendBadServerHtmlResponse(err, w)
-			return
-		}
-	} else if r.Method == "POST" {
-		err := r.ParseForm()
-		if err != nil {
-			log.Println("Error executing templates: ", err)
-			sendBadServerHtmlResponse(err, w)
-			return
-		}
-
-		orderNumber := r.FormValue("order_number")
-		phoneNumber := r.FormValue("phone_number")
-
-		req := &models.NewOrderRequest{OrderNumber: orderNumber, PhoneNumber: phoneNumber}
-		if !placeNewOrder(req, true, w, r) {
-			return
-		}
-
-		if err = sms.SendSMS(req.FormattedPhoneNumber, welcomeMessage(orderNumber)); err != nil {
-			log.Println("Error sending SMS: ", err)
-			sendBadServerHtmlResponse(err, w)
-			return
-		}
-
-		http.Redirect(w, r, "/thank-you.html", http.StatusSeeOther)
-	} else {
-		sendBadRequestErrResponse("bad_request", fmt.Errorf("unknown http method %v", r.Method), w)
-	}
-}
-
-func renderResponse(filename string, contentType string, w http.ResponseWriter) {
-	buf, err := ioutil.ReadFile(filename)
-
-	if err != nil {
-		log.Println(err)
-		sendBadServerHtmlResponse(err, w)
+func postHomepageForm(c *gin.Context) {
+	newOrderForm := &models.NewOrderRequest{}
+	if err := c.Bind(newOrderForm); err != nil {
+		sendBadServerHtmlResponse(err, c)
 		return
 	}
 
-	w.Header().Set("Content-Type", contentType)
-	w.Write(buf)
-}
-
-func renderAsset(filename string, contentType string) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		renderResponse(filename, contentType, w)
-	}
-}
-
-func renderTemplateWithParams(w http.ResponseWriter, r *http.Request) {
-	errorMsg := r.URL.Query().Get("errorMsg")
-	if len(errorMsg) == 0 {
-		sendBadServerHtmlResponse(fmt.Errorf("expected errorMsg for client error response"), w)
+	if !placeNewOrder(newOrderForm, true, c) {
 		return
 	}
 
-	err := models.BadResponseError{Type: "invalid_input", Msg: errorMsg}
-	renderTemplate("templates/400-error.html", err, w)
+	if err := sms.SendSMS(newOrderForm.FormattedPhoneNumber, welcomeMessage(newOrderForm.OrderNumber)); err != nil {
+		sendBadServerHtmlResponse(err, c)
+	}
+
+	c.Redirect(http.StatusSeeOther, "/thank-you.html")
 }
 
-func renderTemplate(filename string, data any, w http.ResponseWriter) {
-	parsedTemplate, err := template.ParseFiles(filename)
-	if err != nil {
-		log.Println("Error parsing file:", err)
-		sendBadServerHtmlResponse(err, w)
+func getHomepage(c *gin.Context) {
+	c.File("templates/index.html")
+}
+
+func renderTemplateWithParams(ctx *gin.Context) {
+	errorMsg, ok := ctx.GetQuery("errorMsg")
+	if !ok || len(errorMsg) == 0 {
+		sendBadServerHtmlResponse(fmt.Errorf("expected errorMsg for client error response"), ctx)
 		return
 	}
 
-	err = parsedTemplate.Execute(w, data)
-	if err != nil {
-		log.Println("Error executing templates :", err)
-		sendBadServerHtmlResponse(err, w)
-		return
-	}
-}
-
-func login(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Fprintln(w, "Email : ", r.PostForm.Get("email"))
-	fmt.Fprintln(w, "Password : ", r.PostForm.Get("password"))
-	fmt.Fprintln(w, "Remember Me : ", r.PostForm.Get("remember_check"))
+	ctx.HTML(400, "400-error.html", gin.H{
+		"Msg": errorMsg,
+	})
 }

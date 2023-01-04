@@ -1,41 +1,32 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/jiaming2012/order-alert-system/backend/models"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 )
 
-func sendBadServerErrResponse(err error, w http.ResponseWriter) {
-	w.WriteHeader(500)
-	fmt.Printf("Error: Bad server: %v\n", err)
+func sendBadServerErrResponse(err error, ctx *gin.Context) {
+	logrus.Error(err)
+	ctx.Status(http.StatusInternalServerError)
 }
 
-func sendBadServerHtmlResponse(err error, w http.ResponseWriter) {
-	sendBadServerErrResponse(err, w)
-	renderResponse("templates/500-error.html", "text/html", w)
+func sendBadServerHtmlResponse(err error, ctx *gin.Context) {
+	logrus.Error(err)
+	ctx.HTML(http.StatusInternalServerError, "500-error.html", gin.H{})
 }
 
-func sendBadRequestHtmlResponse(err error, w http.ResponseWriter, r *http.Request) {
+func sendBadRequestHtmlResponse(err error, ctx *gin.Context) {
 	encodedErrorMsg := url.QueryEscape(err.Error())
-	http.Redirect(w, r, fmt.Sprintf("/400-error.html?errorMsg=%s", encodedErrorMsg), http.StatusSeeOther)
+	ctx.Redirect(http.StatusSeeOther, fmt.Sprintf("/400-error.html?errorMsg=%s", encodedErrorMsg))
 }
 
-func sendBadRequestErrResponse(errType string, err error, w http.ResponseWriter) {
-	resp := models.BadResponseError{
+func sendBadRequestErrResponse(errType string, err error, ctx *gin.Context) {
+	ctx.JSON(http.StatusBadRequest, models.BadResponseError{
 		Type: errType,
 		Msg:  err.Error(),
-	}
-
-	bytes, err := json.Marshal(resp)
-	if err != nil {
-		w.WriteHeader(500)
-		fmt.Printf("Error: failed to marshall error %v, type=%v\n", err, errType)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
-	w.Write(bytes)
+	})
 }

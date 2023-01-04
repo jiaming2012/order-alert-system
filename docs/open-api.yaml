@@ -1,0 +1,244 @@
+openapi: 3.1.0
+x-stoplight:
+  id: 8im8s95k2c9oy
+info:
+  title: Food Order Alerts
+  version: '1.0'
+  summary: A customer will be able to enter their cell number and be notified when their food order is ready
+  description: A web app for YumYums
+  contact:
+    name: Jamal Cole
+    email: jac475@cornell.edu
+servers:
+  - url: 'http://localhost:3000'
+tags:
+  - name: user
+    description: Endpoints for the user/customer
+  - name: admin
+    description: Admin endpoints for communicating with the customer
+paths:
+  /:
+    parameters: []
+    get:
+      summary: New Order Form
+      tags:
+        - user
+      responses:
+        '200':
+          $ref: '#/components/responses/Admin-Page-Success'
+        '500':
+          description: Internal Server Error
+      operationId: get-new-order-form
+      description: Fetches an http form that a user can use to request that they be notified once their order is ready
+      parameters:
+        - schema:
+            type: string
+          in: header
+  /admin:
+    get:
+      summary: Admin Dashboard
+      tags:
+        - admin
+      responses:
+        '200':
+          $ref: '#/components/responses/Admin-Page-Success'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+      operationId: get-admin-page
+      description: Fetches an admin javascript web app that is used for communicating order status with the customer
+      security:
+        - admin-page: []
+  /order:
+    post:
+      summary: Place an Order
+      tags:
+        - user
+      operationId: post-order
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/Bad-Request-Error'
+        '500':
+          description: Internal Server Error
+      description: Used to place a new order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: New order request
+              type: object
+              properties:
+                order_number:
+                  $ref: '#/components/schemas/OrderNumber'
+                phone_number:
+                  type: string
+            examples:
+              Phone Number 1:
+                value:
+                  order_number: '1'
+                  phone_number: 856-334-3483
+              Phone Number 2:
+                value:
+                  order_number: '2'
+                  phone_number: 1 856 282-3325
+  /admin/order:
+    post:
+      summary: Update an Order Status
+      tags:
+        - admin
+      operationId: post-admin-order
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Bad-Request-Error'
+        '500':
+          description: Internal Server Error
+      description: Notify the client that an order their order is ready
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  $ref: '#/components/schemas/OrderID'
+                status:
+                  type: string
+                  description: Order Status
+            examples:
+              Order Ready:
+                value:
+                  id: 123e4567-e89b-12d3-a456-426614174000
+                  status: ready
+              Order Cancelled:
+                value:
+                  id: 123e4567-e89b-12d3-a456-426614174000
+                  status: cancelled
+        description: Gives the order identifier as well as the current order status
+  /order/success:
+    get:
+      summary: Order Success Confirmation
+      tags:
+        - user
+      responses:
+        '200':
+          $ref: '#/components/responses/Order-Placed-Success'
+      operationId: get-order-success
+      description: Notifies the customer that their order was successfully placed
+  /order/fail:
+    get:
+      summary: Order Failure Confirmation
+      tags:
+        - user
+      responses:
+        '200':
+          $ref: '#/components/responses/Order-Placed-Failure'
+      operationId: get-order-fail
+      description: Notifies the customer that something went wrong
+components:
+  schemas:
+    Order:
+      title: Order
+      x-stoplight:
+        id: 69phygaurjur1
+      type: object
+      description: A order that is being prepared for a customer
+      properties:
+        id:
+          $ref: '#/components/schemas/OrderID'
+        phone_number:
+          type: string
+        order_number:
+          $ref: '#/components/schemas/OrderNumber'
+    OrderNumber:
+      title: Order Number
+      x-stoplight:
+        id: 7097f06a2a7b4
+      type: string
+      example: '1'
+      minimum: 0
+      description: Order number given to the customer
+    OrderID:
+      type: string
+      format: uuid
+      example: 123e4567-e89b-12d3-a456-426614174000
+      x-stoplight:
+        id: deb4d4193fbff
+      description: Server created order identifier
+  securitySchemes:
+    admin-page:
+      type: http
+      scheme: basic
+      description: Password required to access admin page for notifying customers that their order is ready
+  responses:
+    Admin-Page-Success:
+      description: Admin order dashboard
+      content:
+        text/html:
+          schema:
+            type: string
+          examples:
+            No open orders:
+              summary: No open orders exist
+              value: "<html><form><label\_for=\"name\">Name:</label><br><input\_type=\"text\"\_id=\"name\"\_name=\"name\"><br><label\_for=\"phone\">Phone Number:</label><br><input\_type=\"text\"\_id=“phone\_name=\"phone\"></form></html>"
+            A list containing two orders:
+              summary: Two orders are awaiting to be completed
+              value: <html><body><ul><li>item 1</li><li>item 2</li></ul></body></html>
+    Place-New-Order-Form-Success:
+      description: A form for submitting new orders
+      content:
+        application/javascript:
+          schema:
+            type: string
+          examples:
+            standard form:
+              summary: A form customers can use for submitting new orders
+              value: '<html><body><form action="/action_page.php"><label for="orderNumber">Order Number:</label><br><input type="text" id="orderNumber" name="orderNumber" value=""><br><label for="phoneNumber">Phone Number:</label><br><input type="text" id="phoneNumber" name="phoneNumber" value=""><br><br><input type="submit" value="Submit"></form> <p>Enter your order and phone number, and we will text you once your order is ready.</p></body></html>'
+    Bad-Request-Error:
+      description: Example json error response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+              msg:
+                type: string
+          examples:
+            Bad Phone Number:
+              value:
+                type: validation
+                msg: could not read phone number
+            Bad input:
+              value:
+                type: input
+                msg: unknown order status
+    Order-Placed-Success:
+      description: Example response
+      content:
+        text/html:
+          schema:
+            properties:
+              id:
+                type: string
+          examples:
+            Order Success:
+              value: <html><body><p>Thank you for your order. You should receive a text confirmation shortly.</p></body></html>
+    Order-Placed-Failure:
+      description: Example response
+      content:
+        text/html:
+          schema:
+            properties:
+              id:
+                type: string
+          examples:
+            Order Failed:
+              value: <html><body><p>Something went wrong. Please notify our staff.</p></body></html>
+  examples: {}
+x-internal: true
