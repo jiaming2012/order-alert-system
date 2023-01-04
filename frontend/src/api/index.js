@@ -1,7 +1,8 @@
 // api/index.js
 
 let connect = cb => {
-    let socket = new WebSocket(`ws://${window.location.host}/orders`);
+    const wsScheme = (window.location.protocol === "http:") ? "ws" : "wss";
+    let socket = new WebSocket(`${wsScheme}://${window.location.host}/orders`);
 
     console.log("Attempting Connection...");
 

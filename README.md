@@ -66,7 +66,10 @@ docker build -t yumyums/order-messenger .
 ```
 
 ## Heroku
-We use heroku to deploy our app:
+We use heroku to deploy our app. A new version of our app is deployed by pushing to a remote heroku git branch:
+``` bash
+git push heroku main
+```
 
 ### Database
 Set up a heroku database instance:
