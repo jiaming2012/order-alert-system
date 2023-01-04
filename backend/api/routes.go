@@ -72,5 +72,6 @@ func SetupRoutes(router *gin.Engine) {
 	}))
 	authorized.Use(CORSMiddleware())
 	authorized.Static("/", "web")
-	authorized.POST("/order", handlePlaceOrderUpdate)
+	// todo: add auth - cannot hide basicAuth creds in a react app
+	router.POST("/admin/order", handlePlaceOrderUpdate)
 }
