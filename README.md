@@ -4,7 +4,7 @@
 The admin frontend is a reactjs websocket app. To build run:
 ``` bash
 cd frontend/
-REACT_APP_BACKEND_URL="" REACT_APP_BASIC_AUTH_USER="" REACT_APP_BASIC_AUTH_PASS="" npm run build
+REACT_APP_BASIC_AUTH_USER="" REACT_APP_BASIC_AUTH_PASS="" npm run build
 ```
 
 # SMS
@@ -68,11 +68,15 @@ docker build -t yumyums/order-messenger .
 ## Heroku
 We use heroku to deploy our app:
 
+### Database
+Set up a heroku database instance:
+``` bash
+heroku addons:create -a yumyums-order-messenger heroku-postgresql:mini
+```
+
 ``` bash
 REACT_APP_BASIC_AUTH_USER=
 REACT_APP_BASIC_AUTH_PASS=
-REACT_APP_BACKEND_URL=
-DATABASE_URL=
 ```
 ## Backend
 ### Environment variables
