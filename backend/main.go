@@ -8,9 +8,8 @@ import (
 	"github.com/jiaming2012/order-alert-system/backend/models"
 	"github.com/jiaming2012/order-alert-system/backend/pubsub"
 	"github.com/sirupsen/logrus"
+	"os"
 )
-
-const PORT = 8080
 
 func main() {
 	logrus.Info("Order Messenger App v0.01")
@@ -37,10 +36,12 @@ func main() {
 
 	api.SetupRoutes(router)
 
-	logrus.Infof("listening on :%d", PORT)
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "8080"
+	}
 
-	router.Run(fmt.Sprintf(":%d", PORT))
-	//api.SetupRoutes()
+	logrus.Infof("listening on :%s", port)
 
-	//http.ListenAndServe(fmt.Sprintf(":%v", PORT), nil)
+	router.Run(fmt.Sprintf(":%s", port))
 }
