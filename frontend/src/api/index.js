@@ -1,7 +1,7 @@
 // api/index.js
 
 let connect = cb => {
-    let socket = new WebSocket("ws://localhost:8080/orders");
+    let socket = new WebSocket(`ws://${window.location.host}/orders`);
 
     console.log("Attempting Connection...");
 
