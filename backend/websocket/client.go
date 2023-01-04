@@ -1,9 +1,9 @@
 package websocket
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/jiaming2012/order-alert-system/backend/models"
+	"github.com/sirupsen/logrus"
 	"log"
 )
 
@@ -22,7 +22,7 @@ func BroadcastOrders(pool *Pool) func(interface{}) {
 	return func(event interface{}) {
 		orders, err := models.GetOpenOrders()
 		if err != nil {
-			fmt.Println("error getting open orders: ", err)
+			logrus.Error("error getting open orders: ", err)
 			return
 		}
 
@@ -53,6 +53,6 @@ func (c *Client) Read() {
 		}
 		message := string(p)
 
-		fmt.Printf("Message Received: %+v\n", message)
+		logrus.Debugf("Message Received: %+v\n", message)
 	}
 }

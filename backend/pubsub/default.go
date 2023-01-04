@@ -1,8 +1,8 @@
 package pubsub
 
 import (
-	"fmt"
 	"github.com/asaskevich/EventBus"
+	"github.com/sirupsen/logrus"
 )
 
 var bus EventBus.Bus
@@ -22,6 +22,6 @@ func Subscribe(topic EventName, callbackFn interface{}) error {
 		return err
 	}
 
-	fmt.Printf("Subscribed to topic %s\n", topic)
+	logrus.Infof("Subscribed to topic %s", topic)
 	return nil
 }

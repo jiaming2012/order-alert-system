@@ -1,8 +1,8 @@
 package websocket
 
 import (
-	"fmt"
 	"github.com/jiaming2012/order-alert-system/backend/models"
+	"github.com/sirupsen/logrus"
 )
 
 type Pool struct {
@@ -36,24 +36,24 @@ func (pool *Pool) Start() {
 		select {
 		case client := <-pool.Register:
 			if err := SendAllOrders(client); err != nil {
-				fmt.Println("failed to send all orders to client. closing connection ...")
+				logrus.Error("failed to send all orders to client. closing connection ...")
 				if wsErr := client.Conn.Close(); wsErr != nil {
-					fmt.Println("failed to close the connection")
+					logrus.Error("failed to close the connection")
 				}
 				continue
 			}
 			pool.Clients[client] = true
-			fmt.Println("a new client joined the pool, len=", len(pool.Clients))
+			logrus.Info("a new client joined the pool, len=", len(pool.Clients))
 
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client)
-			fmt.Println("a client left the pool, len=", len(pool.Clients))
+			logrus.Info("a client left the pool, len=", len(pool.Clients))
 
 		case orders := <-pool.Broadcast:
-			fmt.Println("Sending orders to all clients in Pool")
+			logrus.Info("Sending orders to all clients in Pool")
 			for cli, _ := range pool.Clients {
 				if err := cli.Conn.WriteJSON(orders); err != nil {
-					fmt.Println(err)
+					logrus.Error(err)
 					return
 				}
 			}
